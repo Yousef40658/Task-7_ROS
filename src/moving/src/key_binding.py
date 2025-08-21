@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
-import keyboard                                                
 from std_msgs.msg import Char
-from enum import Enum
-
-
-
+from pynput import keyboard   # no root needed
 
 
 if __name__ == "__main__" :
@@ -15,29 +11,27 @@ if __name__ == "__main__" :
     pub = rospy.Publisher("/orders" ,Char , queue_size= 10)
     rospy.loginfo("Press W/A/S/D/E/Q (ESC to quit)...")
 
-    #to make it more controllable
+    #loop rate
     rate = rospy.Rate(50)
 
+    #key pressing
+    def on_press(key):
+        try:
+            k = key.char.upper()                    # get letter, convert to uppercase
+            if k in ["W" , "A" , "S" , "D" , "Q" , "E"]:
+                pub.publish(ord(k))                 # ord returns ASCII
+                rospy.loginfo(f"Sent {k} ({ord(k)})")
+        except AttributeError:
+            if key == keyboard.Key.esc:             # ESC = quit
+                rospy.loginfo("ESC pressed, shutting down...")
+                rospy.signal_shutdown("ESC pressed")
 
+    # start listener
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
 
-
-    while not rospy.is_shutdown() :
-        event = keyboard.read_event(suppress=False)                           #waits for key press/release _>no need to press enter
-        if event.event_type == keyboard.KEY_DOWN :              #button pressed 
-            key = event.name.upper()
-
-            if key in ["W" , "A" , "S" , "D" , "Q" , "E"] :
-                pub.publish((ord(key)))                        #ord returns the ASCII of the char
-
-            elif key == 'ESC' :
-                break
-
-            else :
-                rospy.loginfo("Press W/A/S/D/E/Q (ESC to quit)...")
-        
+    # keep node alive
+    while not rospy.is_shutdown():
         rate.sleep()
 
-    
-
-
-
+    listener.stop()
