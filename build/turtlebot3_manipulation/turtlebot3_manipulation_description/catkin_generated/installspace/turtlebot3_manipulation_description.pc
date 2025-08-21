@@ -1,0 +1,8 @@
+prefix=/home/hod/catkin_ws/install
+
+Name: turtlebot3_manipulation_description
+Description: Description of turtlebot3_manipulation_description
+Version: 2.0.3
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
